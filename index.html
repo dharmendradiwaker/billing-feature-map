@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Billing Feature Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: sticky feature tree on the left, three views on the right (connections / big picture / flows) */
+:root{
+  --bg:#F2F5F7; --surface:#FFFFFF; --sunk:#E7EDF1; --ink:#13202A; --muted:#566874; --line:#D3DCE2;
+  --accent:#0D6A88; --accent-soft:#DCEEF5;
+  --in:#4A4EC6; --in-soft:#E7E8FA; --out:#16825A; --out-soft:#DCF1E7;
+  --p1:#C9372F; --p2:#D7711A; --p3:#B48F0C; --p4:#2C8A55;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Public Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E151A; --surface:#162028; --sunk:#1D2931; --ink:#E3EBF0; --muted:#93A4AF; --line:#29363F;
+  --accent:#55B8D8; --accent-soft:#15323C;
+  --in:#9296F3; --in-soft:#24264A; --out:#52CB95; --out-soft:#163428;
+  --p1:#EE6B63; --p2:#F09A4E; --p3:#DFBF4B; --p4:#5CC48A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E151A; --surface:#162028; --sunk:#1D2931; --ink:#E3EBF0; --muted:#93A4AF; --line:#29363F;
+  --accent:#55B8D8; --accent-soft:#15323C;
+  --in:#9296F3; --in-soft:#24264A; --out:#52CB95; --out-soft:#163428;
+  --p1:#EE6B63; --p2:#F09A4E; --p3:#DFBF4B; --p4:#5CC48A; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding-inline:20px;padding-block:0 40px}
+@media (max-width:520px){body{padding-inline:16px}}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end;justify-content:space-between;padding-block:26px 18px;border-bottom:1px solid var(--line);margin-bottom:20px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(1.6rem,3.2vw,2.15rem);line-height:1.1;margin:0;letter-spacing:-.015em;text-wrap:balance}
+.sub{color:var(--muted);margin:6px 0 0;max-width:64ch}
+.stats{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font:12.5px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:500}
+.tabs{display:flex;gap:4px;background:var(--sunk);padding:4px;border-radius:10px;flex-wrap:wrap}
+.tabs button{border:0;background:transparent;font-weight:600;font-size:13.5px;padding:7px 14px;border-radius:7px;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .14)}
+
+.app{display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px;align-items:start}
+.tree-pane{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 10px 14px}
+@media (max-width:860px){.app{grid-template-columns:minmax(0,1fr)}.tree-pane{position:static;max-height:46vh}}
+.search{position:sticky;top:-10px;background:var(--surface);padding:0 0 8px;z-index:2}
+.search input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--ink)}
+
+/* tree */
+#tree summary{list-style:none;cursor:pointer}
+#tree summary::-webkit-details-marker{display:none}
+.tier>summary{display:flex;align-items:center;gap:8px;padding:10px 6px 6px;font-family:var(--f-display);font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.07em}
+.tier>summary .tnote{margin-left:auto;font:500 11px var(--f-mono);text-transform:none;letter-spacing:0;color:var(--muted)}
+.pr{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+.sec>summary{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;font-weight:600;font-size:14px}
+.sec>summary::before{content:"";width:0;height:0;border-left:5px solid var(--muted);border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s;flex:none}
+.sec[open]>summary::before{transform:rotate(90deg)}
+.sec>summary:hover{background:var(--sunk)}
+.sec>summary.is-sel{background:var(--accent-soft)}
+.sec>summary .cnt{margin-left:auto;font:400 11.5px var(--f-mono);color:var(--muted)}
+.sec ul{list-style:none;margin:0 0 6px 13px;padding:2px 0 2px 0;border-left:1px solid var(--line)}
+.sec li{position:relative;padding-left:12px}
+.sec li::before{content:"";position:absolute;left:0;top:50%;width:9px;border-top:1px solid var(--line)}
+.leaf{display:flex;align-items:center;gap:7px;width:100%;text-align:left;border:0;background:transparent;padding:3px 6px;border-radius:6px;font-size:13.5px;cursor:pointer;color:var(--ink)}
+.leaf:hover{background:var(--sunk)}
+.leaf .ln{flex:1;min-width:0}
+.leaf .deg{font:11px var(--f-mono);color:var(--muted)}
+.mk{width:7px;height:7px;border-radius:50%;flex:none;background:transparent;border:1px solid var(--line)}
+.leaf.is-in .mk{background:var(--in);border-color:var(--in)}
+.leaf.is-out .mk{background:var(--out);border-color:var(--out)}
+.leaf.is-in.is-out .mk{background:linear-gradient(90deg,var(--in) 50%,var(--out) 50%);border-color:transparent}
+.leaf.is-in .ln{color:var(--in)}
+.leaf.is-out .ln{color:var(--out)}
+.leaf.is-sel{background:var(--accent-soft);font-weight:600}
+.leaf.is-sel .mk{background:var(--accent);border-color:var(--accent)}
+
+/* shared */
+main{container-type:inline-size;min-width:0}
+.hint{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;color:var(--muted);font-size:13px;margin:0 0 16px}
+.key{display:inline-flex;align-items:center;gap:7px}
+.key i{width:22px;height:0;border-top:2px solid}
+.key.in i{border-color:var(--in)} .key.out i{border-color:var(--out)}
+
+/* focus view */
+.focus{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,1.1fr) minmax(0,1fr);gap:20px 64px;align-items:start}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0;position:relative;z-index:1}
+.col h3{margin:0 0 2px;font:600 11.5px var(--f-mono);text-transform:uppercase;letter-spacing:.08em}
+.col.in h3{color:var(--in)} .col.out h3{color:var(--out)}
+.col .none{color:var(--muted);font-size:13px;margin:0;padding:10px;border:1px dashed var(--line);border-radius:8px}
+.card{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 11px;cursor:pointer;transition:border-color .12s, background .12s}
+.col.in .card:hover{border-color:var(--in);background:var(--in-soft)}
+.col.out .card:hover{border-color:var(--out);background:var(--out-soft)}
+.card strong{font-size:14px;font-weight:600}
+.c-sec{display:flex;align-items:center;gap:6px;font:11px var(--f-mono);color:var(--muted)}
+.c-lbl{font-size:12.5px;color:var(--muted);line-height:1.4}
+.c-lbl em{font-style:normal;color:var(--ink)}
+.mid{min-width:0;position:relative;z-index:1}
+.mid-card{background:var(--surface);border:1.5px solid var(--accent);border-radius:12px;padding:16px 18px;box-shadow:0 6px 20px -12px rgb(0 0 0 / .35)}
+.crumb{display:flex;align-items:center;gap:6px;font:11.5px var(--f-mono);color:var(--muted)}
+.mid-card h2{font-family:var(--f-display);font-weight:700;font-size:1.45rem;line-height:1.15;margin:6px 0 10px;text-wrap:balance}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font:500 12px var(--f-mono);padding:3px 8px;border-radius:99px}
+.pill.in{background:var(--in-soft);color:var(--in)} .pill.out{background:var(--out-soft);color:var(--out)}
+.mid-card h4{margin:16px 0 6px;font:600 11px var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:3px 8px;font-size:12.5px;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.chip small{font-family:var(--f-mono);color:var(--muted);margin-left:4px}
+.empty{font-size:13px;color:var(--muted);margin:12px 0 0}
+.link-btn{margin-top:14px;border:0;background:none;padding:0;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.wires{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:0}
+.wires .w{fill:none;stroke-width:1.4;opacity:.5;transition:opacity .12s, stroke-width .12s}
+.wires .w.in{stroke:var(--in)} .wires .w.out{stroke:var(--out)}
+.wires .w.hot{opacity:1;stroke-width:2.6}
+.ah-in{fill:var(--in)} .ah-out{fill:var(--out)}
+@container (max-width:780px){
+  .focus{grid-template-columns:minmax(0,1fr);gap:18px}
+  .wires{display:none}
+  .mid{order:-1}
+}
+
+/* big picture */
+.bp-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px}
+.bp-status{min-height:1.5em;font-size:13px;color:var(--muted);margin:0 0 10px}
+.bp-status b{color:var(--ink)}
+#bp text{font-family:var(--f-body)}
+.bp-stage{font:600 11px var(--f-mono)!important;letter-spacing:.08em;fill:var(--muted)}
+.bp-node{cursor:pointer}
+.bp-node rect{fill:var(--sunk);stroke:var(--line);stroke-width:1}
+.bp-node text{fill:var(--ink);font-size:12.5px;font-weight:500}
+.bp-node:hover rect,.bp-node:focus rect,.bp-node.on rect{stroke:var(--accent);stroke-width:1.6}
+.bp-edge{fill:none;stroke:var(--muted);opacity:.2;transition:opacity .12s}
+#bp.dim .bp-edge{opacity:.04}
+#bp.dim .bp-node{opacity:.35}
+#bp.dim .bp-node.on,#bp.dim .bp-node.lit{opacity:1}
+#bp.dim .bp-edge.e-out{opacity:.9;stroke:var(--out)}
+#bp.dim .bp-edge.e-in{opacity:.9;stroke:var(--in)}
+
+/* flows */
+.flow-picks{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.flow-picks button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 13px;font-size:13.5px;cursor:pointer}
+.flow-picks button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chain{list-style:none;margin:0;padding:0;max-width:560px}
+.step{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;width:100%;text-align:left;cursor:pointer}
+.step:hover{border-color:var(--accent)}
+.step .n{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font:500 12px var(--f-mono)}
+.step strong{display:block;font-size:14.5px}
+.hop{display:flex;align-items:center;gap:10px;padding:6px 0 6px 26px;color:var(--out);font-size:13px}
+.hop::before{content:"";width:0;height:26px;border-left:2px solid var(--out);flex:none;margin-right:2px}
+.hop span{color:var(--muted)}
+.flow-desc{color:var(--muted);margin:-6px 0 16px;max-width:60ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <h1>Billing Feature Map</h1>
+    <p class="sub">Every BUSY-style feature from your reference file, arranged as a tree. Pick any feature or section to see what data it gets and where that data goes next.</p>
+    <div class="stats" id="stats"></div>
+  </div>
+  <div class="tabs" role="tablist" aria-label="View">
+    <button role="tab" id="tab-focus" aria-selected="true" data-mode="focus">Connections</button>
+    <button role="tab" id="tab-big" aria-selected="false" data-mode="big">Big picture</button>
+    <button role="tab" id="tab-flow" aria-selected="false" data-mode="flow">Follow a flow</button>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="tree-pane" aria-label="Feature tree">
+    <div class="search"><input id="q" type="search" placeholder="Search features, e.g. bank" autocomplete="off"></div>
+    <nav id="tree"></nav>
+  </aside>
+  <main>
+    <section id="v-focus"></section>
+    <section id="v-big" hidden></section>
+    <section id="v-flow" hidden></section>
+  </main>
+</div>
+
+<script>
+const TIERS = [
+ {id:'t1', name:'Core billing', note:'most used', pr:1, sections:[
+  {id:'s_setup', name:'Company setup', f:[['company','Company profile & GSTIN'],['fy','Financial year'],['features','Feature options'],['multico','Multiple companies'],['cbank','Bank & UPI details'],['logo','Logo & signature']]},
+  {id:'s_masters', name:'Masters', f:[['grp','Account groups'],['customer','Customer master'],['supplier','Supplier master'],['ledger_exp','Expense & income accounts'],['bankac','Bank & cash accounts'],['item','Item master'],['itemgrp','Item groups'],['unit','Units & conversion'],['hsn','HSN/SAC & GST rates'],['saletype','Sale & purchase types'],['sundry','Bill sundries (freight, round-off)'],['godown','Godowns'],['salesman','Salesman / broker'],['transporter','Transporters'],['terms','Terms & narrations']]},
+  {id:'s_sales', name:'Sales invoicing', f:[['sinv','Sales invoice'],['billseries','Bill series & numbering'],['gstcalc','Auto GST calculation'],['disc','Item & bill discounts'],['creditchk','Credit limit check'],['stockchk','Live stock check'],['lastrate','Last rate given to party'],['multipay','Split payment modes'],['sret','Sales return / credit note'],['export','Export invoice']]},
+  {id:'s_purchase', name:'Purchase entry', f:[['pinv','Purchase invoice'],['itc','ITC eligibility'],['rcm','Reverse charge purchase'],['import','Import & bill of entry'],['pexp','Expense purchase'],['pret','Purchase return / debit note'],['landed','Landed cost'],['priceupd','Update sale price from purchase']]},
+  {id:'s_gst', name:'GST compliance', f:[['gstr1','GSTR-1'],['gstr3b','GSTR-3B'],['gstr2b','GSTR-2A/2B reconciliation'],['einv','E-invoice (IRN & QR)'],['ewb','E-way bill'],['hsnsum','HSN summary'],['gstledger','GST ledger & set-off'],['gstchallan','GST challan (PMT-06)'],['comp','Composition (GSTR-4, CMP-08)'],['gstr9','Annual return GSTR-9'],['gstin','GSTIN validation']]},
+  {id:'s_pay', name:'Payments & receipts', f:[['receipt','Receipt voucher'],['payment','Payment voucher'],['billadj','Bill-by-bill adjustment'],['cheque','Cheque details'],['pdc','Post-dated cheques'],['advance','Advances with GST']]}
+ ]},
+ {id:'t2', name:'Daily operations', note:'very important', pr:2, sections:[
+  {id:'s_vouch', name:'Accounting vouchers', f:[['journal','Journal'],['contra','Contra (cash ↔ bank)'],['drcr','Debit / credit note (no items)'],['recur','Recurring vouchers'],['approve','Voucher approval'],['lock','Period locking']]},
+  {id:'s_inv', name:'Inventory', f:[['stock','Live stock'],['stockledger','Stock ledger'],['valuation','Stock valuation'],['reorder','Reorder level alerts'],['physical','Physical stock'],['transfer','Stock transfer'],['ageing_item','Slow & non-moving items'],['itemprofit','Item-wise profit']]},
+  {id:'s_order', name:'Order processing', f:[['quote','Quotation / proforma'],['so','Sales order'],['challan','Delivery challan'],['po','Purchase order'],['grn','Material receipt (GRN)'],['pendorders','Pending orders'],['backorder','Back orders']]},
+  {id:'s_out', name:'Outstanding', f:[['receivables','Receivables'],['payables','Payables'],['ageing','Ageing analysis'],['overdue','Overdue bills'],['reminders','Payment reminders'],['interest','Interest on overdue'],['collection','Collection report']]},
+  {id:'s_reports', name:'Core reports', f:[['daybook','Day book'],['partyledger','Party ledger / statement'],['cashbook','Cash book'],['bankbook','Bank book'],['salesreg','Sales register'],['purreg','Purchase register'],['tb','Trial balance'],['pl','Profit & loss'],['bs','Balance sheet'],['cashflow','Cash flow'],['salesanalysis','Sales analysis']]},
+  {id:'s_print', name:'Printing & sharing', f:[['invformat','Invoice designer'],['thermal','Thermal / A4 / A5 formats'],['upiqr','UPI QR on invoice'],['pdf','PDF export'],['batchprint','Batch printing'],['chequeprint','Cheque printing']]}
+ ]},
+ {id:'t3', name:'Business growth', note:'important', pr:3, sections:[
+  {id:'s_bank', name:'Banking', f:[['brs','Bank reconciliation'],['stmtimport','Bank statement import'],['chequereg','Cheque register'],['connbank','Connected banking'],['paylink','UPI / payment links']]},
+  {id:'s_price', name:'Pricing & schemes', f:[['pricelist','Price lists'],['partyprice','Party-wise rates'],['slab','Quantity slab pricing'],['schemes','Schemes & free quantity'],['markup','Markup & MRP billing']]},
+  {id:'s_pos', name:'POS / retail', f:[['posbill','POS bill'],['scan','Barcode scan billing'],['holdbill','Hold & recall bill'],['shiftclose','Counter / shift closing'],['loyalty','Loyalty & coupons'],['scale','Weighing scale']]},
+  {id:'s_barcode', name:'Barcode', f:[['bargen','Barcode generation'],['barlabel','Label printing']]},
+  {id:'s_users', name:'Users & security', f:[['users','Users & roles'],['rights','User rights'],['audit','Audit trail / edit log'],['backdate','Back-date restriction']]},
+  {id:'s_data', name:'Data management', f:[['backup','Backup'],['restore','Restore'],['excelimp','Excel import'],['tallyimp','Tally import'],['export_d','Export to Excel / XML'],['sync','Branch sync']]},
+  {id:'s_mis', name:'MIS & dashboard', f:[['dashboard','Dashboard'],['ratio','Ratio analysis'],['budgetvs','Budget vs actual'],['abc','ABC analysis'],['schedrep','Scheduled email reports']]},
+  {id:'s_comm', name:'SMS / WhatsApp / email', f:[['whatsapp','WhatsApp & SMS alerts'],['email','Email invoices & statements'],['bulkmsg','Bulk messages'],['templates','Message templates']]}
+ ]},
+ {id:'t4', name:'Advanced', note:'industry-specific', pr:4, sections:[
+  {id:'s_adv', name:'Advanced inventory', f:[['batch','Batch & expiry'],['serial','Serial / IMEI tracking'],['param','Size & colour'],['conversion','Item conversion / repacking']]},
+  {id:'s_prod', name:'Production (BOM)', f:[['bom','Bill of materials'],['production','Production voucher'],['unassembly','Unassembly'],['mrp_plan','Material requirement planning'],['wip','Work in progress']]},
+  {id:'s_job', name:'Job work', f:[['jobout','Material sent to job worker'],['jobin','Material received back'],['jobpending','Pending with job worker'],['itc04','ITC-04 return']]},
+  {id:'s_tds', name:'TDS / TCS', f:[['tdsded','TDS on payments'],['tcs','TCS on sales'],['tdschallan','TDS challan'],['tdsreturn','TDS / TCS returns'],['form16a','Form 16A']]},
+  {id:'s_payroll', name:'Payroll', f:[['employee','Employee master'],['attendance','Attendance & leave'],['salary','Salary processing'],['pfesi','PF / ESI / PT'],['payslip','Salary slips']]},
+  {id:'s_branch', name:'Multi-branch & currency', f:[['branch','Branch accounting'],['interbranch','Inter-branch transfer'],['currency','Multi-currency'],['consol','Consolidated reports']]},
+  {id:'s_cost', name:'Cost centres & budgets', f:[['costcentre','Cost centres'],['budget','Budgets'],['depreciation','Depreciation'],['fixedasset','Fixed asset register']]},
+  {id:'s_mobile', name:'Mobile & cloud', f:[['mobileapp','Mobile reports app'],['fieldorder','Salesman order booking'],['cloud','Cloud access']]},
+  {id:'s_custom', name:'Customisation', f:[['udf','Custom fields'],['voucherconf','Voucher configuration'],['api','API & integrations']]},
+  {id:'s_util', name:'Utilities', f:[['search','Search anywhere'],['calc','Calculator'],['notes','Notes & reminders'],['attach','Document attachments'],['licence','Licence expiry reminders'],['industry','Industry modules']]}
+ ]}
+];
+
+/* from>to|what flows. "from" sends data to "to". */
+const EDGE_TEXT = `
+company>sinv|Seller name, address and GSTIN printed on the bill
+company>gstcalc|Home state decides CGST+SGST or IGST
+company>einv|Seller GSTIN for the IRN
+company>gstr1|GSTIN and filing period
+company>comp|Composition registration
+fy>tb|Year start and end dates
+fy>lock|Closed years can be frozen
+features>batch|Turns batch tracking on
+features>serial|Turns serial tracking on
+features>param|Turns size & colour on
+multico>consol|Companies combined in one report
+cbank>invformat|Bank account and IFSC on the bill
+cbank>upiqr|UPI ID for the QR
+logo>invformat|Logo and signature on the bill
+grp>customer|Customers sit under Sundry Debtors
+grp>supplier|Suppliers sit under Sundry Creditors
+grp>tb|Group totals
+grp>bs|Balance sheet schedules
+customer>sinv|Name, GSTIN, state, billing & shipping address
+customer>quote|Who the quote is for
+customer>so|Who placed the order
+customer>sret|Who returned goods
+customer>receipt|Who paid
+customer>receivables|Credit days and opening balance
+customer>creditchk|Credit limit
+customer>partyledger|Opening balance
+customer>partyprice|Assigned price list
+customer>whatsapp|Mobile / WhatsApp number
+customer>einv|Buyer GSTIN
+customer>posbill|Walk-in or member details
+customer>bulkmsg|Contact list
+supplier>pinv|Name, GSTIN, state
+supplier>po|Who the order goes to
+supplier>grn|Who delivered
+supplier>payment|Who gets paid
+supplier>pret|Who goods go back to
+supplier>payables|Credit days and opening balance
+supplier>gstr2b|Supplier GSTIN for matching
+supplier>tdsded|TDS section and PAN
+supplier>partyledger|Opening balance
+supplier>jobout|Job worker details
+bankac>receipt|Account money goes into
+bankac>payment|Account money comes from
+bankac>contra|Accounts for cash ↔ bank transfers
+bankac>bankbook|Opening balance
+bankac>chequeprint|Bank cheque format
+bankac>gstchallan|Account used to pay GST
+ledger_exp>pexp|Expense head
+ledger_exp>pl|Income and expense lines
+ledger_exp>journal|Accounts for adjustments
+item>sinv|Name, rate, unit, tax
+item>pinv|Name, purchase rate, unit, tax
+item>quote|Items quoted
+item>so|Items ordered
+item>po|Items to buy
+item>stock|Opening stock
+item>posbill|Items sold at counter
+item>bargen|Item code
+item>bom|Raw material or finished good
+item>pricelist|Base rates
+itemgrp>item|Item grouping
+itemgrp>salesanalysis|Group-wise sales
+unit>item|Main & alternate units
+hsn>item|HSN code and GST rate per item
+hsn>gstcalc|Tax rate
+hsn>hsnsum|HSN codes
+saletype>gstcalc|Local, central, exempt or export
+sundry>sinv|Freight, packing, round-off
+sundry>pinv|Freight and charges on the bill
+sundry>landed|Charges spread into item cost
+godown>stock|Godown-wise stock
+godown>transfer|From and to godown
+godown>grn|Godown goods are received into
+salesman>sinv|Salesman on the bill
+salesman>salesanalysis|Commission and salesman-wise sales
+salesman>fieldorder|Salesman login
+transporter>ewb|Transporter ID and vehicle
+terms>invformat|Terms & conditions text
+billseries>sinv|Invoice number
+gstcalc>sinv|CGST / SGST / IGST amounts
+disc>sinv|Discount amounts
+creditchk>sinv|Warn or block when over limit
+stockchk>sinv|Available quantity
+lastrate>sinv|Rate given last time
+multipay>sinv|Cash + UPI + card split
+sinv>stock|Reduces stock
+sinv>stockledger|Outward movement
+sinv>receivables|Adds amount due
+sinv>partyledger|Debit entry
+sinv>salesreg|Bill listed
+sinv>daybook|Entry of the day
+sinv>gstr1|Outward supplies
+sinv>gstr3b|Output tax
+sinv>einv|Invoice data for IRN
+sinv>ewb|Goods value and route
+sinv>gstledger|Output GST
+sinv>invformat|Printed in chosen format
+sinv>whatsapp|Invoice alert to customer
+sinv>email|Invoice PDF by email
+sinv>receipt|Bill settled by receipt
+sinv>itemprofit|Sale value
+sinv>salesanalysis|Sales figures
+sinv>tcs|Turnover for TCS
+sinv>cashbook|Cash sale
+sinv>audit|Every edit logged
+sret>stock|Adds stock back
+sret>receivables|Reduces amount due
+sret>gstr1|Credit notes
+sret>gstledger|Reverses output GST
+sret>salesreg|Return listed
+export>sinv|Export invoice type
+currency>export|Foreign currency and rate
+einv>invformat|IRN and signed QR printed
+einv>ewb|E-way bill from IRN
+einv>gstr1|Auto-filled on portal
+ewb>invformat|EWB number printed
+pinv>stock|Adds stock
+pinv>stockledger|Inward movement
+pinv>payables|Adds amount owed
+pinv>partyledger|Credit entry
+pinv>purreg|Bill listed
+pinv>daybook|Entry of the day
+pinv>gstr2b|Books side of the match
+pinv>gstr3b|Input tax credit
+pinv>gstledger|Input GST
+pinv>valuation|Purchase cost
+pinv>payment|Bill settled by payment
+pinv>bargen|New items to label
+pinv>batch|Batch, expiry and MRP
+pinv>priceupd|New purchase rate
+pinv>fixedasset|Asset purchases
+pinv>audit|Every edit logged
+itc>pinv|Eligible or ineligible
+itc>gstr3b|ITC claimed
+rcm>gstr3b|RCM tax payable
+rcm>gstledger|RCM liability
+import>pinv|IGST on import
+pexp>pl|Expense
+pexp>gstr3b|ITC on services
+pret>stock|Reduces stock
+pret>payables|Reduces amount owed
+pret>gstledger|Reverses input GST
+pret>purreg|Return listed
+landed>valuation|Real cost per item
+priceupd>pricelist|Updated sale price
+markup>priceupd|Markup %
+gstr2b>itc|Confirms claimable ITC
+gstr2b>gstr3b|Matched ITC
+gstr1>gstr3b|Outward totals
+gstr1>gstr9|Year's sales
+gstr3b>gstr9|Year's tax paid
+gstledger>gstr3b|Net tax payable
+gstchallan>gstledger|Tax paid
+gstchallan>bankbook|Payment from bank
+hsnsum>gstr1|HSN table
+gstin>customer|Fetch name & address from portal
+gstin>supplier|Fetch name & address from portal
+receipt>receivables|Reduces amount due
+receipt>partyledger|Credit entry
+receipt>cashbook|Cash received
+receipt>bankbook|Bank deposit
+receipt>daybook|Entry of the day
+receipt>whatsapp|Receipt alert
+receipt>collection|Amount collected
+receipt>audit|Every edit logged
+payment>payables|Reduces amount owed
+payment>partyledger|Debit entry
+payment>cashbook|Cash paid
+payment>bankbook|Bank withdrawal
+payment>daybook|Entry of the day
+payment>chequeprint|Cheque to print
+payment>tdschallan|TDS to deposit
+payment>audit|Every edit logged
+billadj>receipt|Which bills are paid
+billadj>payment|Which bills are paid
+billadj>ageing|Exact bill-wise dues
+cheque>receipt|Cheque number and date
+cheque>payment|Cheque number and date
+cheque>chequereg|Cheque recorded
+pdc>chequereg|Future-dated cheques
+pdc>bankbook|Posts on cheque date
+advance>receipt|Advance received
+advance>gstr3b|GST on advances
+journal>partyledger|Adjustment entry
+journal>tb|Account balances
+journal>daybook|Entry of the day
+journal>audit|Every edit logged
+contra>cashbook|Cash in or out
+contra>bankbook|Bank in or out
+drcr>partyledger|Rate difference or discount
+drcr>gstr1|Credit / debit notes
+recur>journal|Monthly entries
+recur>payment|Rent and fixed payments
+approve>daybook|Only approved entries post
+lock>daybook|No edits before lock date
+stock>stockchk|Current quantity
+stock>stockledger|Movement history
+stock>valuation|Closing quantity
+stock>reorder|Below minimum level
+stock>ageing_item|Days in stock
+stock>mobileapp|Stock on phone
+physical>stock|Corrects difference
+transfer>stock|Moves between godowns
+reorder>po|Items to order
+reorder>dashboard|Low stock alert
+valuation>itemprofit|Cost per item
+valuation>pl|Closing stock
+valuation>bs|Closing stock
+ageing_item>abc|Movement speed
+quote>so|Converted to order
+quote>invformat|Printed quotation
+quote>whatsapp|Quote sent to customer
+so>challan|Goods dispatched
+so>sinv|Billed directly
+so>pendorders|Pending quantity
+so>backorder|Short supply
+so>mrp_plan|Demand to make
+challan>sinv|Billed later
+challan>stock|Reduces stock
+challan>ewb|Goods movement
+po>grn|Goods received
+po>pendorders|Pending quantity
+grn>pinv|Billed by supplier
+grn>stock|Adds stock
+receivables>ageing|Dues by age
+receivables>creditchk|Current balance
+receivables>bs|Sundry debtors
+receivables>dashboard|Money to collect
+receivables>mobileapp|Dues on phone
+payables>ageing|Dues by age
+payables>bs|Sundry creditors
+ageing>overdue|Bills past due date
+overdue>reminders|Who to remind
+overdue>interest|Days overdue
+reminders>whatsapp|Reminder messages
+reminders>email|Reminder emails
+interest>drcr|Interest debit note
+collection>dashboard|Collections
+partyledger>tb|Party balances
+partyledger>whatsapp|Statement sharing
+partyledger>email|Statement by email
+partyledger>mobileapp|Ledger on phone
+cashbook>tb|Cash balance
+cashbook>cashflow|Cash movement
+bankbook>tb|Bank balance
+bankbook>brs|Book entries to match
+bankbook>cashflow|Bank movement
+salesreg>salesanalysis|Bill details
+salesreg>lastrate|Past bills
+salesreg>export_d|Register to Excel
+tb>pl|Income & expense balances
+tb>bs|Asset & liability balances
+tb>budgetvs|Actual figures
+tb>export_d|Trial balance to Excel
+pl>bs|Net profit
+pl>ratio|Profit figures
+pl>dashboard|Profit
+bs>ratio|Asset & liability figures
+salesanalysis>dashboard|Top items & customers
+salesanalysis>abc|Sales value per item
+salesanalysis>schedrep|Report contents
+invformat>pdf|Bill layout
+invformat>thermal|Bill layout
+invformat>batchprint|Bill layout
+upiqr>invformat|Scan-to-pay QR
+pdf>whatsapp|PDF attached
+pdf>email|PDF attached
+chequeprint>chequereg|Cheque issued
+stmtimport>brs|Bank lines to match
+brs>bankbook|Clearing dates
+chequereg>brs|Cheques to clear
+connbank>payment|Pay from the software
+connbank>stmtimport|Live statement
+paylink>receipt|Online payment recorded
+pricelist>sinv|Rate for this party
+pricelist>posbill|Counter rates
+partyprice>sinv|Special rate
+slab>sinv|Rate by quantity
+schemes>sinv|Free qty or offer
+schemes>posbill|Counter offers
+markup>pricelist|Selling price from cost
+posbill>stock|Reduces stock
+posbill>cashbook|Cash sales
+posbill>bankbook|Card & UPI sales
+posbill>gstr1|B2C sales
+posbill>shiftclose|Counter totals
+posbill>thermal|Receipt print
+scan>posbill|Item from barcode
+holdbill>posbill|Resumed bill
+loyalty>posbill|Points & coupon discount
+scale>posbill|Weight as quantity
+bargen>barlabel|Code to print
+bargen>scan|Code to scan
+batch>bargen|Batch on label
+serial>bargen|Serial on label
+users>rights|Role
+users>audit|Who made the change
+rights>sinv|Who can add or edit bills
+rights>pinv|Who can add or edit purchases
+rights>pl|Hide profit from staff
+backdate>sinv|Blocks old dates
+backup>restore|Backup file
+excelimp>item|Bulk items
+excelimp>customer|Bulk customers
+excelimp>supplier|Bulk suppliers
+excelimp>sinv|Bulk invoices
+tallyimp>grp|Ledgers and groups
+tallyimp>item|Stock items
+sync>branch|Branch data
+sync>consol|Branch figures
+ratio>dashboard|Health indicators
+budget>budgetvs|Budget figures
+schedrep>email|Reports by email
+templates>whatsapp|Message text
+templates>email|Email text
+bulkmsg>whatsapp|Bulk send
+batch>sinv|Pick batch & check expiry
+batch>stock|Batch-wise stock
+serial>sinv|Serial number on bill
+serial>stock|Serial-wise stock
+param>sinv|Size & colour on bill
+param>stock|Size & colour stock
+conversion>stock|Repacked stock
+bom>production|Recipe
+bom>mrp_plan|Material per unit
+production>stock|Raw material out, finished goods in
+production>valuation|Production cost
+production>wip|Unfinished work
+unassembly>stock|Parts back in stock
+mrp_plan>po|Raw materials to buy
+jobout>jobpending|Material out
+jobout>itc04|Goods sent
+jobout>ewb|Goods movement
+jobout>stock|Reduces stock
+jobin>jobpending|Material back
+jobin>itc04|Goods received
+jobin>stock|Adds stock
+tdsded>payment|Net amount after TDS
+tdsded>tdsreturn|Deduction details
+tdschallan>tdsreturn|Challan details
+tdsreturn>form16a|Certificate data
+tcs>sinv|TCS added to bill
+tcs>tdsreturn|TCS collected
+employee>attendance|Who to mark
+employee>salary|Salary structure
+attendance>salary|Days worked
+salary>pfesi|Gross pay
+salary>payslip|Pay details
+salary>journal|Salary posting
+salary>payment|Salary paid
+salary>tdsreturn|TDS on salary
+pfesi>payment|Dues paid
+payslip>email|Slip by email
+branch>consol|Branch figures
+interbranch>stock|Moves stock between branches
+interbranch>gstr1|Taxable when GSTIN differs
+currency>pl|Forex gain or loss
+costcentre>pexp|Expense by department
+costcentre>pl|Department-wise P&L
+fixedasset>depreciation|Asset values
+depreciation>journal|Depreciation entry
+depreciation>bs|Asset value after depreciation
+dashboard>mobileapp|Owner view
+fieldorder>so|Orders from the field
+cloud>mobileapp|Live data
+udf>sinv|Extra fields
+udf>item|Extra fields
+voucherconf>sinv|Fields and defaults
+api>sinv|Online store orders
+api>receipt|Payment gateway
+attach>sinv|Attached PO copy
+attach>pinv|Scanned supplier bill
+licence>dashboard|Expiry alerts
+industry>batch|Pharma batches
+industry>param|Garment sizes
+industry>serial|Electronics IMEI
+`;
+
+const STAGES = [
+ ['SET UP', ['s_setup','s_masters','s_users','s_custom']],
+ ['PLAN & PRICE', ['s_price','s_order','s_barcode','s_adv','s_prod']],
+ ['RECORD', ['s_sales','s_purchase','s_pos','s_pay','s_vouch','s_job','s_tds','s_payroll']],
+ ['TRACK', ['s_inv','s_out','s_bank','s_cost','s_branch']],
+ ['REPORT & FILE', ['s_reports','s_gst','s_mis']],
+ ['SHARE & KEEP', ['s_print','s_comm','s_mobile','s_data','s_util']]
+];
+
+const FLOWS = [
+ {name:'Buy from a supplier and pay', desc:'From ordering goods to matching the payment with your bank statement.', steps:['supplier','po','grn','pinv','payment','bankbook','brs']},
+ {name:'Sell to a customer and collect', desc:'From quote to money in the bank.', steps:['customer','quote','so','challan','sinv','receipt','bankbook']},
+ {name:'Invoice to GST return', desc:'How a tax rate on an item ends up in your annual return.', steps:['hsn','gstcalc','sinv','einv','gstr1','gstr3b','gstr9']},
+ {name:'Claim input tax credit', desc:'Purchase bills are matched with what suppliers filed before ITC is claimed.', steps:['supplier','pinv','gstr2b','gstr3b','gstr9']},
+ {name:'Keep stock from running out', desc:'Stock levels trigger the next purchase order.', steps:['item','pinv','stock','reorder','po','grn']},
+ {name:'Chase an overdue payment', desc:'Unpaid bills become reminders on WhatsApp.', steps:['sinv','receivables','ageing','overdue','reminders','whatsapp']},
+ {name:'Entries to balance sheet', desc:'Every bill lands in the final accounts.', steps:['sinv','partyledger','tb','pl','bs']},
+ {name:'Counter sale', desc:'Barcode to closing the counter at day end.', steps:['item','bargen','scan','posbill','shiftclose']},
+ {name:'Make to order', desc:'A sales order works out what raw material to buy.', steps:['so','mrp_plan','po','grn','stock']},
+ {name:'Pay salaries', desc:'Attendance to salary credited from the bank.', steps:['employee','attendance','salary','payment','bankbook']}
+];
+
+/* ---------- data ---------- */
+const NODE = {}, SEC = {}, ORDER = [];
+TIERS.forEach(t => t.sections.forEach(s => {
+  SEC[s.id] = {...s, tier:t, ord:Object.keys(SEC).length};
+  s.f.forEach(([id,name]) => { NODE[id] = {id, name, sec:s.id, tier:t, ord:ORDER.length}; ORDER.push(id); });
+}));
+const EDGES = [], IN = {}, OUT = {}, EKEY = {};
+EDGE_TEXT.trim().split('\n').forEach(line => {
+  const [pair, label] = line.split('|'); const [a,b] = pair.split('>');
+  if (!NODE[a] || !NODE[b]) { console.warn('Unknown node in', line); return; }
+  const e = {a, b, label};
+  EDGES.push(e); (OUT[a] ||= []).push(e); (IN[b] ||= []).push(e); EKEY[a+'>'+b] = e;
+});
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dot = t => `<i class="pr" style="background:var(--p${t.pr})"></i>`;
+const degree = id => (IN[id]?.length || 0) + (OUT[id]?.length || 0);
+
+$('#stats').innerHTML = `<span><b>${TIERS.length}</b> tiers</span><span><b>${Object.keys(SEC).length}</b> sections</span><span><b>${ORDER.length}</b> features</span><span><b>${EDGES.length}</b> data links</span>`;
+
+/* ---------- tree ---------- */
+const tree = $('#tree');
+tree.innerHTML = TIERS.map(t => `
+  <details class="tier" open><summary>${dot(t)}${esc(t.name)}<span class="tnote">${esc(t.note)}</span></summary>
+  ${t.sections.map(s => `
+    <details class="sec" data-sec="${s.id}"><summary data-sec="${s.id}"><span>${esc(s.name)}</span><span class="cnt">${s.f.length}</span></summary>
+      <ul>${s.f.map(([id,n]) => `<li><button class="leaf" data-id="${id}" title="${degree(id)} data links"><i class="mk"></i><span class="ln">${esc(n)}</span><span class="deg">${degree(id) || ''}</span></button></li>`).join('')}</ul>
+    </details>`).join('')}
+  </details>`).join('');
+
+tree.addEventListener('click', e => {
+  const leaf = e.target.closest('.leaf');
+  if (leaf) { select('f', leaf.dataset.id); return; }
+  const sum = e.target.closest('.sec>summary');
+  if (sum) {
+    e.preventDefault();
+    const det = sum.parentElement;
+    if (sel.kind === 's' && sel.id === sum.dataset.sec && mode === 'focus') det.open = !det.open;
+    else select('s', sum.dataset.sec);
+  }
+});
+
+$('#q').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  tree.querySelectorAll('.sec').forEach(sec => {
+    const sName = SEC[sec.dataset.sec].name.toLowerCase();
+    let any = false;
+    sec.querySelectorAll('li').forEach(li => {
+      const id = li.firstElementChild.dataset.id;
+      const hit = !q || NODE[id].name.toLowerCase().includes(q) || sName.includes(q);
+      li.hidden = !hit; any ||= hit;
+    });
+    sec.hidden = !any;
+    if (q && any) sec.open = true;
+  });
+});
+
+function markTree(ins, outs) {
+  tree.querySelectorAll('.is-sel,.is-in,.is-out').forEach(el => el.classList.remove('is-sel','is-in','is-out'));
+  ins.forEach(id => tree.querySelector(`.leaf[data-id="${id}"]`)?.classList.add('is-in'));
+  outs.forEach(id => tree.querySelector(`.leaf[data-id="${id}"]`)?.classList.add('is-out'));
+  const secId = sel.kind === 'f' ? NODE[sel.id].sec : sel.id;
+  const det = tree.querySelector(`.sec[data-sec="${secId}"]`);
+  det.open = true;
+  const target = sel.kind === 'f' ? tree.querySelector(`.leaf[data-id="${sel.id}"]`) : det.firstElementChild;
+  target.classList.add('is-sel');
+  target.scrollIntoView({block:'nearest'});
+}
+
+/* ---------- modes ---------- */
+let mode = 'focus';
+let sel = {kind:'f', id:'supplier'};
+document.querySelector('.tabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode);
+});
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.tabs [data-mode]').forEach(b => b.setAttribute('aria-selected', b.dataset.mode === m));
+  $('#v-focus').hidden = m !== 'focus'; $('#v-big').hidden = m !== 'big'; $('#v-flow').hidden = m !== 'flow';
+  if (m === 'big' && !$('#bp')) buildBig();
+  if (m === 'flow' && !$('.chain')) renderFlow(0);
+  if (m === 'focus') requestAnimationFrame(drawWires);
+}
+
+/* ---------- focus view ---------- */
+function collect() {
+  const inside = id => sel.kind === 'f' ? id === sel.id : NODE[id].sec === sel.id;
+  const ins = new Map(), outs = new Map();
+  const push = (m, k, v) => { if (!m.has(k)) m.set(k, []); m.get(k).push(v); };
+  EDGES.forEach(e => {
+    const ai = inside(e.a), bi = inside(e.b);
+    if (bi && !ai) push(ins, e.a, {local:e.b, label:e.label});
+    if (ai && !bi) push(outs, e.b, {local:e.a, label:e.label});
+  });
+  const sort = m => new Map([...m].sort((x,y) => NODE[x[0]].ord - NODE[y[0]].ord));
+  return {ins:sort(ins), outs:sort(outs)};
+}
+function card(id, items, dir) {
+  const n = NODE[id];
+  const lbls = items.map(it => `<span class="c-lbl">${sel.kind === 's' ? `<em>${esc(NODE[it.local].name)}:</em> ` : ''}${esc(it.label)}</span>`).join('');
+  return `<button class="card" data-id="${id}" data-dir="${dir}"><span class="c-sec">${dot(n.tier)}${esc(SEC[n.sec].name)}</span><strong>${esc(n.name)}</strong>${lbls}</button>`;
+}
+function select(kind, id) {
+  sel = {kind, id};
+  if (mode !== 'focus') setMode('focus');
+  renderFocus();
+}
+function renderFocus() {
+  const {ins, outs} = collect();
+  let mid;
+  if (sel.kind === 'f') {
+    const n = NODE[sel.id], s = SEC[n.sec];
+    const sibs = s.f.filter(([id]) => id !== n.id).map(([id,name]) => `<button class="chip" data-id="${id}">${esc(name)}</button>`).join('');
+    mid = `<div class="mid-card"><div class="crumb">${dot(n.tier)}${esc(n.tier.name)} › ${esc(s.name)}</div>
+      <h2>${esc(n.name)}</h2>
+      <div class="pills"><span class="pill in">gets data from ${ins.size}</span><span class="pill out">sends data to ${outs.size}</span></div>
+      ${ins.size + outs.size === 0 ? `<p class="empty">No direct data links. This is a setting or tool inside <b>${esc(s.name)}</b>.</p>` : ''}
+      <h4>Also in ${esc(s.name)}</h4><div class="chips">${sibs}</div>
+      <button class="link-btn" data-sec="${s.id}">Show all links for ${esc(s.name)}</button></div>`;
+  } else {
+    const s = SEC[sel.id];
+    const feats = s.f.map(([id,name]) => `<button class="chip" data-id="${id}">${esc(name)}<small>${degree(id) || ''}</small></button>`).join('');
+    mid = `<div class="mid-card"><div class="crumb">${dot(s.tier)}${esc(s.tier.name)} › section</div>
+      <h2>${esc(s.name)}</h2>
+      <div class="pills"><span class="pill in">gets data from ${ins.size}</span><span class="pill out">sends data to ${outs.size}</span></div>
+      <h4>${s.f.length} features in this section</h4><div class="chips">${feats}</div></div>`;
+  }
+  const col = (m, dir, title, none) => `<div class="col ${dir}"><h3>${title}</h3>${m.size ? [...m].map(([id, items]) => card(id, items, dir)).join('') : `<p class="none">${none}</p>`}</div>`;
+  $('#v-focus').innerHTML = `
+    <p class="hint"><span class="key in"><i></i>Gets data from</span><span class="key out"><i></i>Sends data to</span><span>Click any card or chip to move to it. The tree marks linked features in the same colours.</span></p>
+    <div class="focus" id="focus">
+      <svg class="wires" aria-hidden="true"></svg>
+      ${col(ins, 'in', '← Gets data from', 'Nothing feeds into this.')}
+      <div class="mid">${mid}</div>
+      ${col(outs, 'out', 'Sends data to →', 'Nothing depends on this.')}
+    </div>`;
+  markTree([...ins.keys()], [...outs.keys()]);
+  requestAnimationFrame(drawWires);
+}
+const DEFS = `<defs>
+  <marker id="ah-in" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" class="ah-in"/></marker>
+  <marker id="ah-out" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" class="ah-out"/></marker></defs>`;
+function drawWires() {
+  const f = $('#focus'); if (!f || mode !== 'focus') return;
+  const svg = f.querySelector('.wires');
+  if (getComputedStyle(svg).display === 'none') return;
+  const B = f.getBoundingClientRect();
+  svg.setAttribute('viewBox', `0 0 ${B.width} ${B.height}`);
+  svg.setAttribute('width', B.width); svg.setAttribute('height', B.height);
+  const M = f.querySelector('.mid-card').getBoundingClientRect();
+  const span = Math.max(0, Math.min(M.height, 420) - 44);
+  const make = (cards, dir) => cards.map((c, i) => {
+    const r = c.getBoundingClientRect(), n = cards.length;
+    const my = M.top - B.top + 22 + span * (n === 1 ? .5 : i / (n - 1));
+    let x1, y1, x2, y2;
+    if (dir === 'in') { x1 = r.right - B.left; y1 = r.top + r.height/2 - B.top; x2 = M.left - B.left - 2; y2 = my; }
+    else { x1 = M.right - B.left; y1 = my; x2 = r.left - B.left - 2; y2 = r.top + r.height/2 - B.top; }
+    const dx = Math.max(20, (x2 - x1) / 2);
+    return `<path class="w ${dir}" data-id="${c.dataset.id}" d="M${x1} ${y1}C${x1+dx} ${y1} ${x2-dx} ${y2} ${x2} ${y2}" marker-end="url(#ah-${dir})"/>`;
+  }).join('');
+  svg.innerHTML = DEFS + make([...f.querySelectorAll('.col.in .card')], 'in') + make([...f.querySelectorAll('.col.out .card')], 'out');
+}
+const vf = $('#v-focus');
+vf.addEventListener('click', e => {
+  const t = e.target.closest('[data-id],[data-sec]'); if (!t) return;
+  t.dataset.id ? select('f', t.dataset.id) : select('s', t.dataset.sec);
+  window.scrollTo({top: Math.min(window.scrollY, $('main').offsetTop), behavior:'smooth'});
+});
+vf.addEventListener('mouseover', e => {
+  const c = e.target.closest('.card');
+  vf.querySelectorAll('.w.hot').forEach(w => w.classList.remove('hot'));
+  if (c) vf.querySelector(`.w.${c.dataset.dir}[data-id="${c.dataset.id}"]`)?.classList.add('hot');
+});
+new ResizeObserver(() => drawWires()).observe(vf);
+document.fonts?.ready.then(drawWires);
+
+/* ---------- big picture ---------- */
+function buildBig() {
+  const W = 172, H = 38, CW = 214, GAP = 14, TOP = 40;
+  const maxN = Math.max(...STAGES.map(s => s[1].length));
+  const height = TOP + maxN * (H + GAP) + 10, width = STAGES.length * CW - (CW - W) + 16;
+  const pos = {};
+  STAGES.forEach(([, secs], c) => {
+    const off = (maxN - secs.length) * (H + GAP) / 2;
+    secs.forEach((s, i) => pos[s] = {x: 8 + c * CW, y: TOP + off + i * (H + GAP), c});
+  });
+  const agg = {};
+  EDGES.forEach(e => {
+    const a = NODE[e.a].sec, b = NODE[e.b].sec; if (a === b) return;
+    (agg[a+'>'+b] ||= {a, b, n:0}).n++;
+  });
+  const edges = Object.values(agg).map(({a,b,n}) => {
+    const A = pos[a], Bp = pos[b]; let d;
+    const ay = A.y + H/2, by = Bp.y + H/2;
+    if (A.c < Bp.c) { const x1 = A.x + W, x2 = Bp.x, dx = (x2-x1)/2; d = `M${x1} ${ay}C${x1+dx} ${ay} ${x2-dx} ${by} ${x2} ${by}`; }
+    else if (A.c > Bp.c) { const x1 = A.x, x2 = Bp.x + W, dx = (x1-x2)/2; d = `M${x1} ${ay}C${x1-dx} ${ay} ${x2+dx} ${by} ${x2} ${by}`; }
+    else { const x = A.x + W, bulge = 26 + Math.abs(by-ay)*.25; d = `M${x} ${ay}C${x+bulge} ${ay} ${x+bulge} ${by} ${x} ${by}`; }
+    return `<path class="bp-edge" data-a="${a}" data-b="${b}" stroke-width="${(1 + Math.min(n,6)*.45).toFixed(2)}" d="${d}"><title>${esc(SEC[a].name)} → ${esc(SEC[b].name)}: ${n} link${n>1?'s':''}</title></path>`;
+  }).join('');
+  const stageLabels = STAGES.map(([name], c) => `<text class="bp-stage" x="${8 + c*CW}" y="18">${name}</text>`).join('');
+  const nodes = Object.entries(pos).map(([s, p]) => `
+    <g class="bp-node" data-sec="${s}" tabindex="0" role="button" aria-label="${esc(SEC[s].name)}">
+      <rect x="${p.x}" y="${p.y}" width="${W}" height="${H}" rx="7"/>
+      <circle cx="${p.x+13}" cy="${p.y+H/2}" r="4" style="fill:var(--p${SEC[s].tier.pr})"/>
+      <text x="${p.x+24}" y="${p.y+H/2+4.5}">${esc(SEC[s].name)}</text></g>`).join('');
+  $('#v-big').innerHTML = `
+    <p class="hint">Each box is one section. A line means data passes between two sections, and thicker lines carry more links. Hover or tab to a box to trace it; click it to open its connections.</p>
+    <p class="bp-status" id="bp-status">Point at a section to see how many sections it feeds and depends on.</p>
+    <div class="bp-wrap"><svg id="bp" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${stageLabels}${edges}${nodes}</svg></div>`;
+  const svg = $('#bp'), status = $('#bp-status');
+  const on = s => {
+    svg.classList.add('dim');
+    let nin = 0, nout = 0;
+    svg.querySelectorAll('.bp-edge').forEach(p => {
+      const o = p.dataset.a === s, i = p.dataset.b === s;
+      p.classList.toggle('e-out', o); p.classList.toggle('e-in', i);
+      if (o) { nout++; svg.querySelector(`.bp-node[data-sec="${p.dataset.b}"]`).classList.add('lit'); }
+      if (i) { nin++; svg.querySelector(`.bp-node[data-sec="${p.dataset.a}"]`).classList.add('lit'); }
+    });
+    svg.querySelector(`.bp-node[data-sec="${s}"]`).classList.add('on');
+    status.innerHTML = `<b>${esc(SEC[s].name)}</b> gets data from <b style="color:var(--in)">${nin}</b> sections and sends data to <b style="color:var(--out)">${nout}</b>.`;
+  };
+  const off = () => { svg.classList.remove('dim'); svg.querySelectorAll('.on,.lit,.e-in,.e-out').forEach(el => el.classList.remove('on','lit','e-in','e-out')); };
+  svg.querySelectorAll('.bp-node').forEach(g => {
+    g.addEventListener('mouseenter', () => on(g.dataset.sec)); g.addEventListener('focus', () => on(g.dataset.sec));
+    g.addEventListener('mouseleave', off); g.addEventListener('blur', off);
+    g.addEventListener('click', () => select('s', g.dataset.sec));
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select('s', g.dataset.sec); } });
+  });
+}
+
+/* ---------- flows ---------- */
+function renderFlow(i) {
+  const f = FLOWS[i];
+  const steps = f.steps.map((id, k) => {
+    const n = NODE[id];
+    const hop = k < f.steps.length - 1 ? `<li class="hop" aria-hidden="true">↓ <span>${esc(EKEY[id+'>'+f.steps[k+1]]?.label || 'leads to')}</span></li>` : '';
+    return `<li><button class="step" data-id="${id}"><span class="n">${k+1}</span><span><strong>${esc(n.name)}</strong><span class="c-sec">${dot(n.tier)}${esc(SEC[n.sec].name)}</span></span></button></li>${hop}`;
+  }).join('');
+  $('#v-flow').innerHTML = `
+    <div class="flow-picks">${FLOWS.map((x, k) => `<button data-flow="${k}" aria-pressed="${k === i}">${esc(x.name)}</button>`).join('')}</div>
+    <p class="flow-desc">${esc(f.desc)} Click a step to see everything else it connects to.</p>
+    <ol class="chain">${steps}</ol>`;
+}
+$('#v-flow').addEventListener('click', e => {
+  const fb = e.target.closest('[data-flow]'); if (fb) { renderFlow(+fb.dataset.flow); return; }
+  const st = e.target.closest('.step'); if (st) select('f', st.dataset.id);
+});
+
+renderFocus();
+</script>
+</body>
+</html>
