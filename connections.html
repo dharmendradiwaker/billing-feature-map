@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Billing Feature Map</title>
+<title>BUSY Outside Connections</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -158,15 +158,20 @@ main{container-type:inline-size;min-width:0}
 .pages a,.pages span{padding:4px 10px;border-radius:99px;border:1px solid var(--line);text-decoration:none;color:var(--ink)}
 .pages a:hover{border-color:var(--accent)}
 .pages span{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.meta{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.meta p{flex-basis:100%;margin:0;font-size:13.5px;color:var(--ink)}
+.meta .how{font:600 11.5px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;background:var(--accent-soft);color:var(--accent);padding:3px 8px;border-radius:6px}
+.meta .url{font:500 12.5px var(--f-mono);color:var(--accent);word-break:break-all}
+.meta .src{font-size:12.5px;color:var(--muted)}
 </style>
 </head>
 <body>
 
 <header class="top">
   <div>
-    <h1>Billing Feature Map</h1>
-    <p class="sub">Every BUSY-style feature from your reference file, arranged as a tree. Pick any feature or section to see what data it gets and where that data goes next.</p>
-    <nav class="pages"><span aria-current="page">Feature map</span><a href="./connections.html">Outside connections</a></nav>
+    <h1>BUSY Outside Connections</h1>
+    <p class="sub">Every government portal, bank, payment, messaging and BUSY server the BUSY software connects to, and which feature inside BUSY uses it. Pick anything to see what data goes out and what comes back.</p>
+    <nav class="pages"><a href="./">Feature map</a><span aria-current="page">Outside connections</span></nav>
     <div class="stats" id="stats"></div>
   </div>
   <div class="tabs" role="tablist" aria-label="View">
@@ -177,8 +182,8 @@ main{container-type:inline-size;min-width:0}
 </header>
 
 <div class="app">
-  <aside class="tree-pane" aria-label="Feature tree">
-    <div class="search"><input id="q" type="search" placeholder="Search features, e.g. bank" autocomplete="off"></div>
+  <aside class="tree-pane" aria-label="Connections tree">
+    <div class="search"><input id="q" type="search" placeholder="Search, e.g. GST or WhatsApp" autocomplete="off"></div>
     <nav id="tree"></nav>
   </aside>
   <main>
@@ -190,447 +195,172 @@ main{container-type:inline-size;min-width:0}
 
 <script>
 const TIERS = [
- {id:'t1', name:'Core billing', note:'most used', pr:1, sections:[
-  {id:'s_setup', name:'Company setup', f:[['company','Company profile & GSTIN'],['fy','Financial year'],['features','Feature options'],['multico','Multiple companies'],['cbank','Bank & UPI details'],['logo','Logo & signature']]},
-  {id:'s_masters', name:'Masters', f:[['grp','Account groups'],['customer','Customer master'],['supplier','Supplier master'],['ledger_exp','Expense & income accounts'],['bankac','Bank & cash accounts'],['item','Item master'],['itemgrp','Item groups'],['unit','Units & conversion'],['hsn','HSN/SAC & GST rates'],['saletype','Sale & purchase types'],['sundry','Bill sundries (freight, round-off)'],['godown','Godowns'],['salesman','Salesman / broker'],['transporter','Transporters'],['terms','Terms & narrations']]},
-  {id:'s_sales', name:'Sales invoicing', f:[['sinv','Sales invoice'],['billseries','Bill series & numbering'],['gstcalc','Auto GST calculation'],['disc','Item & bill discounts'],['creditchk','Credit limit check'],['stockchk','Live stock check'],['lastrate','Last rate given to party'],['multipay','Split payment modes'],['sret','Sales return / credit note'],['export','Export invoice']]},
-  {id:'s_purchase', name:'Purchase entry', f:[['pinv','Purchase invoice'],['itc','ITC eligibility'],['rcm','Reverse charge purchase'],['import','Import & bill of entry'],['pexp','Expense purchase'],['pret','Purchase return / debit note'],['landed','Landed cost'],['priceupd','Update sale price from purchase']]},
-  {id:'s_gst', name:'GST compliance', f:[['gstr1','GSTR-1'],['gstr3b','GSTR-3B'],['gstr2b','GSTR-2A/2B reconciliation'],['einv','E-invoice (IRN & QR)'],['ewb','E-way bill'],['hsnsum','HSN summary'],['gstledger','GST ledger & set-off'],['gstchallan','GST challan (PMT-06)'],['comp','Composition (GSTR-4, CMP-08)'],['gstr9','Annual return GSTR-9'],['gstin','GSTIN validation']]},
-  {id:'s_pay', name:'Payments & receipts', f:[['receipt','Receipt voucher'],['payment','Payment voucher'],['billadj','Bill-by-bill adjustment'],['cheque','Cheque details'],['pdc','Post-dated cheques'],['advance','Advances with GST']]}
+ {id:'t1', name:'Inside BUSY', note:'features', pr:4, sections:[
+  {id:'s_txn', name:'Transactions', f:[['sinv','Sales invoice'],['sret','Sales return / credit note'],['pinv','Purchase invoice'],['receipt','Receipt voucher'],['payment','Payment voucher']]},
+  {id:'s_gstf', name:'GST features', f:[['einv','Auto e-invoice (IRN & QR)'],['ewb','Auto e-way bill'],['gstr1','GSTR-1 direct upload'],['gstr2b','GSTR-2A / 2B reconciliation']]},
+  {id:'s_tdsf', name:'TDS', f:[['tdsfile','eTDS return file (26Q / 27EQ)']]},
+  {id:'s_payf', name:'Banking & payments', f:[['bankrec','Bank reconciliation'],['paylink','Payment link'],['upiqr','UPI QR on invoice']]},
+  {id:'s_share', name:'Sharing', f:[['notify','Send invoice / ledger after save'],['smsapi','SMS API configuration'],['emailcfg','Email configuration']]},
+  {id:'s_setup', name:'Setup & data', f:[['einvset','GSP credentials (GST/VAT config)'],['gstuser','GST portal username & OTP'],['license','Licence activation'],['cloudsync','Cloud sync (BDEP ID + BUSY Agent)'],['mobile','BUSY Mobile App'],['tallyimp','Tally2BUSY import'],['data','Company data']]}
  ]},
- {id:'t2', name:'Daily operations', note:'very important', pr:2, sections:[
-  {id:'s_vouch', name:'Accounting vouchers', f:[['journal','Journal'],['contra','Contra (cash ↔ bank)'],['drcr','Debit / credit note (no items)'],['recur','Recurring vouchers'],['approve','Voucher approval'],['lock','Period locking']]},
-  {id:'s_inv', name:'Inventory', f:[['stock','Live stock'],['stockledger','Stock ledger'],['valuation','Stock valuation'],['reorder','Reorder level alerts'],['physical','Physical stock'],['transfer','Stock transfer'],['ageing_item','Slow & non-moving items'],['itemprofit','Item-wise profit']]},
-  {id:'s_order', name:'Order processing', f:[['quote','Quotation / proforma'],['so','Sales order'],['challan','Delivery challan'],['po','Purchase order'],['grn','Material receipt (GRN)'],['pendorders','Pending orders'],['backorder','Back orders']]},
-  {id:'s_out', name:'Outstanding', f:[['receivables','Receivables'],['payables','Payables'],['ageing','Ageing analysis'],['overdue','Overdue bills'],['reminders','Payment reminders'],['interest','Interest on overdue'],['collection','Collection report']]},
-  {id:'s_reports', name:'Core reports', f:[['daybook','Day book'],['partyledger','Party ledger / statement'],['cashbook','Cash book'],['bankbook','Bank book'],['salesreg','Sales register'],['purreg','Purchase register'],['tb','Trial balance'],['pl','Profit & loss'],['bs','Balance sheet'],['cashflow','Cash flow'],['salesanalysis','Sales analysis']]},
-  {id:'s_print', name:'Printing & sharing', f:[['invformat','Invoice designer'],['thermal','Thermal / A4 / A5 formats'],['upiqr','UPI QR on invoice'],['pdf','PDF export'],['batchprint','Batch printing'],['chequeprint','Cheque printing']]}
- ]},
- {id:'t3', name:'Business growth', note:'important', pr:3, sections:[
-  {id:'s_bank', name:'Banking', f:[['brs','Bank reconciliation'],['stmtimport','Bank statement import'],['chequereg','Cheque register'],['connbank','Connected banking'],['paylink','UPI / payment links']]},
-  {id:'s_price', name:'Pricing & schemes', f:[['pricelist','Price lists'],['partyprice','Party-wise rates'],['slab','Quantity slab pricing'],['schemes','Schemes & free quantity'],['markup','Markup & MRP billing']]},
-  {id:'s_pos', name:'POS / retail', f:[['posbill','POS bill'],['scan','Barcode scan billing'],['holdbill','Hold & recall bill'],['shiftclose','Counter / shift closing'],['loyalty','Loyalty & coupons'],['scale','Weighing scale']]},
-  {id:'s_barcode', name:'Barcode', f:[['bargen','Barcode generation'],['barlabel','Label printing']]},
-  {id:'s_users', name:'Users & security', f:[['users','Users & roles'],['rights','User rights'],['audit','Audit trail / edit log'],['backdate','Back-date restriction']]},
-  {id:'s_data', name:'Data management', f:[['backup','Backup'],['restore','Restore'],['excelimp','Excel import'],['tallyimp','Tally import'],['export_d','Export to Excel / XML'],['sync','Branch sync']]},
-  {id:'s_mis', name:'MIS & dashboard', f:[['dashboard','Dashboard'],['ratio','Ratio analysis'],['budgetvs','Budget vs actual'],['abc','ABC analysis'],['schedrep','Scheduled email reports']]},
-  {id:'s_comm', name:'SMS / WhatsApp / email', f:[['whatsapp','WhatsApp & SMS alerts'],['email','Email invoices & statements'],['bulkmsg','Bulk messages'],['templates','Message templates']]}
- ]},
- {id:'t4', name:'Advanced', note:'industry-specific', pr:4, sections:[
-  {id:'s_adv', name:'Advanced inventory', f:[['batch','Batch & expiry'],['serial','Serial / IMEI tracking'],['param','Size & colour'],['conversion','Item conversion / repacking']]},
-  {id:'s_prod', name:'Production (BOM)', f:[['bom','Bill of materials'],['production','Production voucher'],['unassembly','Unassembly'],['mrp_plan','Material requirement planning'],['wip','Work in progress']]},
-  {id:'s_job', name:'Job work', f:[['jobout','Material sent to job worker'],['jobin','Material received back'],['jobpending','Pending with job worker'],['itc04','ITC-04 return']]},
-  {id:'s_tds', name:'TDS / TCS', f:[['tdsded','TDS on payments'],['tcs','TCS on sales'],['tdschallan','TDS challan'],['tdsreturn','TDS / TCS returns'],['form16a','Form 16A']]},
-  {id:'s_payroll', name:'Payroll', f:[['employee','Employee master'],['attendance','Attendance & leave'],['salary','Salary processing'],['pfesi','PF / ESI / PT'],['payslip','Salary slips']]},
-  {id:'s_branch', name:'Multi-branch & currency', f:[['branch','Branch accounting'],['interbranch','Inter-branch transfer'],['currency','Multi-currency'],['consol','Consolidated reports']]},
-  {id:'s_cost', name:'Cost centres & budgets', f:[['costcentre','Cost centres'],['budget','Budgets'],['depreciation','Depreciation'],['fixedasset','Fixed asset register']]},
-  {id:'s_mobile', name:'Mobile & cloud', f:[['mobileapp','Mobile reports app'],['fieldorder','Salesman order booking'],['cloud','Cloud access']]},
-  {id:'s_custom', name:'Customisation', f:[['udf','Custom fields'],['voucherconf','Voucher configuration'],['api','API & integrations']]},
-  {id:'s_util', name:'Utilities', f:[['search','Search anywhere'],['calc','Calculator'],['notes','Notes & reminders'],['attach','Document attachments'],['licence','Licence expiry reminders'],['industry','Industry modules']]}
+ {id:'t2', name:'Outside BUSY', note:'websites & services', pr:2, sections:[
+  {id:'s_gov', name:'Government portals', f:[['gstportal','GST Portal'],['irp','E-Invoice portal (IRP)'],['ewbportal','E-Way Bill portal'],['protean','Protean e-TDS utilities'],['itportal','Income Tax e-filing']]},
+  {id:'s_gsp', name:'GST Suvidha Providers', f:[['webtel','Webtel Electrosoft'],['pinnacle','Pinnacle Finserv Advisors']]},
+  {id:'s_bank', name:'Banks & payments', f:[['icici','ICICI Bank (connected banking)'],['razorpay','Razorpay'],['upiapps','Customer’s UPI app']]},
+  {id:'s_msg', name:'Messaging & email', f:[['wa','WhatsApp Desktop'],['smsgw','Your SMS gateway'],['msgbucket','MsgBucket (third party)'],['smtp','Email server (e.g. Gmail)']]},
+  {id:'s_busy', name:'BUSY’s own servers', f:[['busyin','busy.in'],['bdns','download.bdns.in'],['busycloud','BUSY cloud sync server'],['bns','BUSY BNS'],['busyonline','BUSY Online (hosted)'],['gsttool','GSTIN validation tool']]},
+  {id:'s_other', name:'Other software', f:[['tally','Tally data']]}
  ]}
 ];
 
-/* from>to|what flows. "from" sends data to "to". */
+/* Details shown in the middle card. how: the way BUSY connects. */
+const META = {
+ sinv:{how:'Inside BUSY', note:'Transactions › Sales. Starts most outside connections: e-invoice, e-way bill, GSTR-1, payment link, UPI QR, WhatsApp and email.'},
+ sret:{how:'Inside BUSY', note:'Credit notes go to GSTR-1 and need an IRN when e-invoicing applies.'},
+ pinv:{how:'Inside BUSY', note:'Purchase bills are matched against what suppliers filed (GSTR-2A/2B).'},
+ receipt:{how:'Inside BUSY', note:'Online payments collected through Razorpay are recorded here.'},
+ payment:{how:'Inside BUSY', note:'TDS deducted here feeds the eTDS return file. With the ICICI add-on, payments can be sent from BUSY.'},
+ einv:{how:'Through a GSP', note:'One click generates, prints and cancels e-invoices. Available from the Standard edition (Saffron) up.', src:'https://busy.in/faqs/how-do-i-properly-set-up-and-configure-the-einvoice-functionality-in-busy-answerid-48442/'},
+ ewb:{how:'Through a GSP', note:'Generates the e-way bill with the invoice, no JSON upload needed.', src:'https://busy.in/faqs/how-do-i-link-my-eway-bill-in-busy-answerid-63046/'},
+ gstr1:{how:'Direct with OTP', note:'Uploads sales, returns and credit/debit notes to the GST portal without opening the portal.', src:'https://busy.in/faqs/upload-and-file-gstr-directly-from-busy-answerid-59732/'},
+ gstr2b:{how:'Direct with OTP', note:'Transactions › GST Misc Utilities › Download GSTR JSON Data, then Reconcile GSTR Data.', src:'https://busy.in/faqs/taxation/gst-reconciliation/30/'},
+ tdsfile:{how:'Manual upload', note:'Print/Email/SMS › TDS/TCS Reports › eTDS Return creates e.g. C:\\BUSYWin\\Form26Q.txt.', src:'https://busy.in/faqs/how-do-i-generate-download-and-file-tds-returns-in-busy-answerid-55965/'},
+ bankrec:{how:'Paid add-on', note:'With the ICICI plugin, bank statements are fetched and matched automatically.'},
+ paylink:{how:'Partner app', note:'Razorpay patch: send payment links by email and SMS from BUSY.', src:'https://razorpay.com/app-store/busy/'},
+ upiqr:{how:'No website', note:'QR built from your UPI ID and printed on the invoice or ledger. Standard and Advanced formats.', src:'https://busy.in/faqs/how-to-print-payment-qr-code-on-invoice-answerid-65771/'},
+ notify:{how:'Inside BUSY', note:'After saving a voucher, BUSY asks whether to send it by SMS, WhatsApp or email.'},
+ smsapi:{how:'You configure', note:'Administration › Configuration › SMS API Configuration. Any provider’s web address and parameters can be pasted here.', src:'https://busy.in/faqs/i-want-to-activate-sms-and-whatsapp-integration-in-busy-what-is-the-process-answerid-44949/'},
+ emailcfg:{how:'You configure', note:'Administration › Configuration › Email Configuration › Send Directly.', src:'https://busy.in/faqs/notification-tools/email-configuration/33/'},
+ einvset:{how:'You configure', note:'Enter the API username/password created on the e-way bill portal for Webtel and, as backup, Pinnacle.', src:'https://busy.in/faqs/what-are-the-different-gsp-ids-supported-by-busy-and-how-are-they-configured-answerid-44990/'},
+ gstuser:{how:'You configure', note:'Features/Options › GST/VAT: your GST portal username. An OTP confirms each upload or download.'},
+ license:{how:'BUSY service', note:'Company › License Management › Softlock Registration with the activation key. A 15-day demo needs mobile number + OTP.', src:'https://busy.in/faqs/i-cannot-find-the-option-to-activate-my-software-license-where-can-i-activate-the-license-key-answerid-36469/'},
+ cloudsync:{how:'BUSY service', note:'Create a BDEP ID, turn on cloud sync, then BUSY Agent uploads changes at set intervals.', src:'https://busy.in/faqs/how-does-the-busy-mobile-app-sync-with-the-desktop-version-answerid-55978/'},
+ mobile:{how:'BUSY service', note:'Android / iOS app: quotations, orders, invoices, receipts and 100+ reports.', url:'https://busy.in/mobile-accounting-software/'},
+ tallyimp:{how:'Local file', note:'Free add-on that copies Tally masters and vouchers into BUSY.', src:'https://busy.in/faqs/third-party-services/add-on/2/'},
+ data:{how:'Inside BUSY', note:'The company database (MS SQL or Access) on your PC or server.'},
+ gstportal:{url:'https://www.gst.gov.in', how:'Direct with OTP', note:'Turn on Profile › Manage API access (6 hours or 30 days). Used for GSTR-1 upload and GSTR-2A/2B download.', src:'https://busy.in/faqs/how-can-i-directly-upload-documents-for-gst-return-filing-if-otp-issues-persist-answerid-45029/'},
+ irp:{url:'https://einvoice1.gst.gov.in', how:'Through a GSP', note:'Government Invoice Registration Portal: gives the IRN, acknowledgement number and signed QR code.', src:'https://busy.in/gst/all-about-e-invoice-registration-on-irp/'},
+ ewbportal:{url:'https://ewaybillgst.gov.in', how:'Through a GSP', note:'Log in, register the GSP, create the API user BUSY needs. Same API user also works for e-invoice.', src:'https://busy.in/faqs/how-do-i-properly-set-up-and-configure-the-einvoice-functionality-in-busy-answerid-48442/'},
+ protean:{url:'https://tinpan.proteantech.in/downloads/e-tds/eTDS-download-regular.html', how:'Manual upload', note:'Formerly NSDL. Its File Validation Utility (FVU) checks the TDS text file BUSY creates.', src:'https://tinpan.proteantech.in/downloads/e-tds/eTDS-download-regular.html'},
+ itportal:{url:'https://www.incometax.gov.in', how:'Manual upload', note:'You upload the validated TDS file here yourself; BUSY does not connect to it.'},
+ webtel:{how:'GSP (main)', note:'BUSY’s default GST Suvidha Provider for automatic e-invoice and e-way bill.', src:'https://busy.in/faqs/what-are-the-different-gsp-ids-supported-by-busy-and-how-are-they-configured-answerid-44990/'},
+ pinnacle:{how:'GSP (backup)', note:'Second GSP. If one GSP’s API fails, BUSY uses the other.', src:'https://busy.in/faqs/how-do-i-link-my-eway-bill-in-busy-answerid-63046/'},
+ icici:{url:'https://www.icicibank.com', how:'Paid add-on', note:'Only bank BUSY connects to. Fetch statements, reconcile, make payments, open a current account. Partnership announced July 2021.', src:'https://thepaypers.com/fintech/news/icici-bank-partners-busy-for-banking-solutions'},
+ razorpay:{url:'https://razorpay.com/app-store/busy/', how:'Partner app', note:'Payment links for card, net banking and UPI, with instant reconciliation.', src:'https://razorpay.com/app-store/busy/'},
+ upiapps:{how:'No website', note:'Any UPI app (PhonePe, Google Pay, Paytm, BHIM…) scans the QR on the invoice.'},
+ wa:{url:'https://www.whatsapp.com/download/', how:'You configure', note:'BUSY opens WhatsApp with a whatsapp://send?phone=…&text=… link. Invoices go as links, not PDF attachments.', src:'https://busy.in/faqs/i-want-to-activate-sms-and-whatsapp-integration-in-busy-what-is-the-process-answerid-44949/'},
+ smsgw:{how:'You configure', note:'No built-in provider: any SMS company that offers a web (HTTP) API.'},
+ msgbucket:{url:'https://msgbucket.com/busy.php', how:'Third party', note:'Outside company offering WhatsApp API for BUSY. Not from BUSY itself.', src:'https://msgbucket.com/busy.php'},
+ smtp:{how:'You configure', note:'Your mail server. Gmail: smtp.gmail.com, port 465, app password if 2-step login is on.', src:'https://busy.in/faqs/notification-tools/email-configuration/33/'},
+ busyin:{url:'https://busy.in', how:'BUSY service', note:'Downloads, licence activation, demo registration, help and FAQs.', src:'https://busy.in/download/'},
+ bdns:{url:'https://download.bdns.in/Utility.aspx', how:'BUSY service', note:'BUSY’s download server: BUSY Agent, Tally2BUSY, BUSY Server, GST help PDFs.', src:'https://download.bdns.in/Utility.aspx'},
+ busycloud:{how:'BUSY service', note:'Cloud used to sync desktop data with the mobile app. BUSY does not publish the server address.'},
+ bns:{how:'BUSY service', note:'Notification service to share invoices and reports with parties, brokers and staff on WhatsApp and email.', src:'https://busy.in/download/'},
+ busyonline:{how:'BUSY service', note:'BUSY run on a fully managed cloud server for access from anywhere.'},
+ gsttool:{url:'https://busy.in/gst-validation-tool/', how:'Web tool', note:'Free GSTIN check on BUSY’s website. Separate from the desktop software.', src:'https://busy.in/gst-validation-tool/'},
+ tally:{how:'Local file', note:'Tally’s company data on the same computer, read by Tally2BUSY.'}
+};
+
+/* from>to|what flows */
 const EDGE_TEXT = `
-company>sinv|Seller name, address and GSTIN printed on the bill
-company>gstcalc|Home state decides CGST+SGST or IGST
-company>einv|Seller GSTIN for the IRN
-company>gstr1|GSTIN and filing period
-company>comp|Composition registration
-fy>tb|Year start and end dates
-fy>lock|Closed years can be frozen
-features>batch|Turns batch tracking on
-features>serial|Turns serial tracking on
-features>param|Turns size & colour on
-multico>consol|Companies combined in one report
-cbank>invformat|Bank account and IFSC on the bill
-cbank>upiqr|UPI ID for the QR
-logo>invformat|Logo and signature on the bill
-grp>customer|Customers sit under Sundry Debtors
-grp>supplier|Suppliers sit under Sundry Creditors
-grp>tb|Group totals
-grp>bs|Balance sheet schedules
-customer>sinv|Name, GSTIN, state, billing & shipping address
-customer>quote|Who the quote is for
-customer>so|Who placed the order
-customer>sret|Who returned goods
-customer>receipt|Who paid
-customer>receivables|Credit days and opening balance
-customer>creditchk|Credit limit
-customer>partyledger|Opening balance
-customer>partyprice|Assigned price list
-customer>whatsapp|Mobile / WhatsApp number
-customer>einv|Buyer GSTIN
-customer>posbill|Walk-in or member details
-customer>bulkmsg|Contact list
-supplier>pinv|Name, GSTIN, state
-supplier>po|Who the order goes to
-supplier>grn|Who delivered
-supplier>payment|Who gets paid
-supplier>pret|Who goods go back to
-supplier>payables|Credit days and opening balance
-supplier>gstr2b|Supplier GSTIN for matching
-supplier>tdsded|TDS section and PAN
-supplier>partyledger|Opening balance
-supplier>jobout|Job worker details
-bankac>receipt|Account money goes into
-bankac>payment|Account money comes from
-bankac>contra|Accounts for cash ↔ bank transfers
-bankac>bankbook|Opening balance
-bankac>chequeprint|Bank cheque format
-bankac>gstchallan|Account used to pay GST
-ledger_exp>pexp|Expense head
-ledger_exp>pl|Income and expense lines
-ledger_exp>journal|Accounts for adjustments
-item>sinv|Name, rate, unit, tax
-item>pinv|Name, purchase rate, unit, tax
-item>quote|Items quoted
-item>so|Items ordered
-item>po|Items to buy
-item>stock|Opening stock
-item>posbill|Items sold at counter
-item>bargen|Item code
-item>bom|Raw material or finished good
-item>pricelist|Base rates
-itemgrp>item|Item grouping
-itemgrp>salesanalysis|Group-wise sales
-unit>item|Main & alternate units
-hsn>item|HSN code and GST rate per item
-hsn>gstcalc|Tax rate
-hsn>hsnsum|HSN codes
-saletype>gstcalc|Local, central, exempt or export
-sundry>sinv|Freight, packing, round-off
-sundry>pinv|Freight and charges on the bill
-sundry>landed|Charges spread into item cost
-godown>stock|Godown-wise stock
-godown>transfer|From and to godown
-godown>grn|Godown goods are received into
-salesman>sinv|Salesman on the bill
-salesman>salesanalysis|Commission and salesman-wise sales
-salesman>fieldorder|Salesman login
-transporter>ewb|Transporter ID and vehicle
-terms>invformat|Terms & conditions text
-billseries>sinv|Invoice number
-gstcalc>sinv|CGST / SGST / IGST amounts
-disc>sinv|Discount amounts
-creditchk>sinv|Warn or block when over limit
-stockchk>sinv|Available quantity
-lastrate>sinv|Rate given last time
-multipay>sinv|Cash + UPI + card split
-sinv>stock|Reduces stock
-sinv>stockledger|Outward movement
-sinv>receivables|Adds amount due
-sinv>partyledger|Debit entry
-sinv>salesreg|Bill listed
-sinv>daybook|Entry of the day
-sinv>gstr1|Outward supplies
-sinv>gstr3b|Output tax
-sinv>einv|Invoice data for IRN
-sinv>ewb|Goods value and route
-sinv>gstledger|Output GST
-sinv>invformat|Printed in chosen format
-sinv>whatsapp|Invoice alert to customer
-sinv>email|Invoice PDF by email
-sinv>receipt|Bill settled by receipt
-sinv>itemprofit|Sale value
-sinv>salesanalysis|Sales figures
-sinv>tcs|Turnover for TCS
-sinv>cashbook|Cash sale
-sinv>audit|Every edit logged
-sret>stock|Adds stock back
-sret>receivables|Reduces amount due
-sret>gstr1|Credit notes
-sret>gstledger|Reverses output GST
-sret>salesreg|Return listed
-export>sinv|Export invoice type
-currency>export|Foreign currency and rate
-einv>invformat|IRN and signed QR printed
-einv>ewb|E-way bill from IRN
-einv>gstr1|Auto-filled on portal
-ewb>invformat|EWB number printed
-pinv>stock|Adds stock
-pinv>stockledger|Inward movement
-pinv>payables|Adds amount owed
-pinv>partyledger|Credit entry
-pinv>purreg|Bill listed
-pinv>daybook|Entry of the day
-pinv>gstr2b|Books side of the match
-pinv>gstr3b|Input tax credit
-pinv>gstledger|Input GST
-pinv>valuation|Purchase cost
-pinv>payment|Bill settled by payment
-pinv>bargen|New items to label
-pinv>batch|Batch, expiry and MRP
-pinv>priceupd|New purchase rate
-pinv>fixedasset|Asset purchases
-pinv>audit|Every edit logged
-itc>pinv|Eligible or ineligible
-itc>gstr3b|ITC claimed
-rcm>gstr3b|RCM tax payable
-rcm>gstledger|RCM liability
-import>pinv|IGST on import
-pexp>pl|Expense
-pexp>gstr3b|ITC on services
-pret>stock|Reduces stock
-pret>payables|Reduces amount owed
-pret>gstledger|Reverses input GST
-pret>purreg|Return listed
-landed>valuation|Real cost per item
-priceupd>pricelist|Updated sale price
-markup>priceupd|Markup %
-gstr2b>itc|Confirms claimable ITC
-gstr2b>gstr3b|Matched ITC
-gstr1>gstr3b|Outward totals
-gstr1>gstr9|Year's sales
-gstr3b>gstr9|Year's tax paid
-gstledger>gstr3b|Net tax payable
-gstchallan>gstledger|Tax paid
-gstchallan>bankbook|Payment from bank
-hsnsum>gstr1|HSN table
-gstin>customer|Fetch name & address from portal
-gstin>supplier|Fetch name & address from portal
-receipt>receivables|Reduces amount due
-receipt>partyledger|Credit entry
-receipt>cashbook|Cash received
-receipt>bankbook|Bank deposit
-receipt>daybook|Entry of the day
-receipt>whatsapp|Receipt alert
-receipt>collection|Amount collected
-receipt>audit|Every edit logged
-payment>payables|Reduces amount owed
-payment>partyledger|Debit entry
-payment>cashbook|Cash paid
-payment>bankbook|Bank withdrawal
-payment>daybook|Entry of the day
-payment>chequeprint|Cheque to print
-payment>tdschallan|TDS to deposit
-payment>audit|Every edit logged
-billadj>receipt|Which bills are paid
-billadj>payment|Which bills are paid
-billadj>ageing|Exact bill-wise dues
-cheque>receipt|Cheque number and date
-cheque>payment|Cheque number and date
-cheque>chequereg|Cheque recorded
-pdc>chequereg|Future-dated cheques
-pdc>bankbook|Posts on cheque date
-advance>receipt|Advance received
-advance>gstr3b|GST on advances
-journal>partyledger|Adjustment entry
-journal>tb|Account balances
-journal>daybook|Entry of the day
-journal>audit|Every edit logged
-contra>cashbook|Cash in or out
-contra>bankbook|Bank in or out
-drcr>partyledger|Rate difference or discount
-drcr>gstr1|Credit / debit notes
-recur>journal|Monthly entries
-recur>payment|Rent and fixed payments
-approve>daybook|Only approved entries post
-lock>daybook|No edits before lock date
-stock>stockchk|Current quantity
-stock>stockledger|Movement history
-stock>valuation|Closing quantity
-stock>reorder|Below minimum level
-stock>ageing_item|Days in stock
-stock>mobileapp|Stock on phone
-physical>stock|Corrects difference
-transfer>stock|Moves between godowns
-reorder>po|Items to order
-reorder>dashboard|Low stock alert
-valuation>itemprofit|Cost per item
-valuation>pl|Closing stock
-valuation>bs|Closing stock
-ageing_item>abc|Movement speed
-quote>so|Converted to order
-quote>invformat|Printed quotation
-quote>whatsapp|Quote sent to customer
-so>challan|Goods dispatched
-so>sinv|Billed directly
-so>pendorders|Pending quantity
-so>backorder|Short supply
-so>mrp_plan|Demand to make
-challan>sinv|Billed later
-challan>stock|Reduces stock
-challan>ewb|Goods movement
-po>grn|Goods received
-po>pendorders|Pending quantity
-grn>pinv|Billed by supplier
-grn>stock|Adds stock
-receivables>ageing|Dues by age
-receivables>creditchk|Current balance
-receivables>bs|Sundry debtors
-receivables>dashboard|Money to collect
-receivables>mobileapp|Dues on phone
-payables>ageing|Dues by age
-payables>bs|Sundry creditors
-ageing>overdue|Bills past due date
-overdue>reminders|Who to remind
-overdue>interest|Days overdue
-reminders>whatsapp|Reminder messages
-reminders>email|Reminder emails
-interest>drcr|Interest debit note
-collection>dashboard|Collections
-partyledger>tb|Party balances
-partyledger>whatsapp|Statement sharing
-partyledger>email|Statement by email
-partyledger>mobileapp|Ledger on phone
-cashbook>tb|Cash balance
-cashbook>cashflow|Cash movement
-bankbook>tb|Bank balance
-bankbook>brs|Book entries to match
-bankbook>cashflow|Bank movement
-salesreg>salesanalysis|Bill details
-salesreg>lastrate|Past bills
-salesreg>export_d|Register to Excel
-tb>pl|Income & expense balances
-tb>bs|Asset & liability balances
-tb>budgetvs|Actual figures
-tb>export_d|Trial balance to Excel
-pl>bs|Net profit
-pl>ratio|Profit figures
-pl>dashboard|Profit
-bs>ratio|Asset & liability figures
-salesanalysis>dashboard|Top items & customers
-salesanalysis>abc|Sales value per item
-salesanalysis>schedrep|Report contents
-invformat>pdf|Bill layout
-invformat>thermal|Bill layout
-invformat>batchprint|Bill layout
-upiqr>invformat|Scan-to-pay QR
-pdf>whatsapp|PDF attached
-pdf>email|PDF attached
-chequeprint>chequereg|Cheque issued
-stmtimport>brs|Bank lines to match
-brs>bankbook|Clearing dates
-chequereg>brs|Cheques to clear
-connbank>payment|Pay from the software
-connbank>stmtimport|Live statement
-paylink>receipt|Online payment recorded
-pricelist>sinv|Rate for this party
-pricelist>posbill|Counter rates
-partyprice>sinv|Special rate
-slab>sinv|Rate by quantity
-schemes>sinv|Free qty or offer
-schemes>posbill|Counter offers
-markup>pricelist|Selling price from cost
-posbill>stock|Reduces stock
-posbill>cashbook|Cash sales
-posbill>bankbook|Card & UPI sales
-posbill>gstr1|B2C sales
-posbill>shiftclose|Counter totals
-posbill>thermal|Receipt print
-scan>posbill|Item from barcode
-holdbill>posbill|Resumed bill
-loyalty>posbill|Points & coupon discount
-scale>posbill|Weight as quantity
-bargen>barlabel|Code to print
-bargen>scan|Code to scan
-batch>bargen|Batch on label
-serial>bargen|Serial on label
-users>rights|Role
-users>audit|Who made the change
-rights>sinv|Who can add or edit bills
-rights>pinv|Who can add or edit purchases
-rights>pl|Hide profit from staff
-backdate>sinv|Blocks old dates
-backup>restore|Backup file
-excelimp>item|Bulk items
-excelimp>customer|Bulk customers
-excelimp>supplier|Bulk suppliers
-excelimp>sinv|Bulk invoices
-tallyimp>grp|Ledgers and groups
-tallyimp>item|Stock items
-sync>branch|Branch data
-sync>consol|Branch figures
-ratio>dashboard|Health indicators
-budget>budgetvs|Budget figures
-schedrep>email|Reports by email
-templates>whatsapp|Message text
-templates>email|Email text
-bulkmsg>whatsapp|Bulk send
-batch>sinv|Pick batch & check expiry
-batch>stock|Batch-wise stock
-serial>sinv|Serial number on bill
-serial>stock|Serial-wise stock
-param>sinv|Size & colour on bill
-param>stock|Size & colour stock
-conversion>stock|Repacked stock
-bom>production|Recipe
-bom>mrp_plan|Material per unit
-production>stock|Raw material out, finished goods in
-production>valuation|Production cost
-production>wip|Unfinished work
-unassembly>stock|Parts back in stock
-mrp_plan>po|Raw materials to buy
-jobout>jobpending|Material out
-jobout>itc04|Goods sent
-jobout>ewb|Goods movement
-jobout>stock|Reduces stock
-jobin>jobpending|Material back
-jobin>itc04|Goods received
-jobin>stock|Adds stock
-tdsded>payment|Net amount after TDS
-tdsded>tdsreturn|Deduction details
-tdschallan>tdsreturn|Challan details
-tdsreturn>form16a|Certificate data
-tcs>sinv|TCS added to bill
-tcs>tdsreturn|TCS collected
-employee>attendance|Who to mark
-employee>salary|Salary structure
-attendance>salary|Days worked
-salary>pfesi|Gross pay
-salary>payslip|Pay details
-salary>journal|Salary posting
-salary>payment|Salary paid
-salary>tdsreturn|TDS on salary
-pfesi>payment|Dues paid
-payslip>email|Slip by email
-branch>consol|Branch figures
-interbranch>stock|Moves stock between branches
-interbranch>gstr1|Taxable when GSTIN differs
-currency>pl|Forex gain or loss
-costcentre>pexp|Expense by department
-costcentre>pl|Department-wise P&L
-fixedasset>depreciation|Asset values
-depreciation>journal|Depreciation entry
-depreciation>bs|Asset value after depreciation
-dashboard>mobileapp|Owner view
-fieldorder>so|Orders from the field
-cloud>mobileapp|Live data
-udf>sinv|Extra fields
-udf>item|Extra fields
-voucherconf>sinv|Fields and defaults
-api>sinv|Online store orders
-api>receipt|Payment gateway
-attach>sinv|Attached PO copy
-attach>pinv|Scanned supplier bill
-licence>dashboard|Expiry alerts
-industry>batch|Pharma batches
-industry>param|Garment sizes
-industry>serial|Electronics IMEI
+sinv>einv|Bill details for the IRN
+sret>einv|Credit note for the IRN
+einvset>einv|GSP username & password
+einv>webtel|Invoice data (JSON)
+einv>pinnacle|Same request if Webtel fails
+webtel>irp|Forwards the invoice
+pinnacle>irp|Forwards the invoice
+irp>webtel|IRN, ack. no. and signed QR
+webtel>einv|IRN & QR saved and printed on the bill
+sinv>ewb|Goods, value, vehicle, distance
+einvset>ewb|GSP username & password
+ewb>webtel|E-way bill request
+ewb>pinnacle|Same request if Webtel fails
+webtel>ewbportal|Forwards the request
+pinnacle>ewbportal|Forwards the request
+ewbportal>webtel|EWB number and validity
+webtel>ewb|EWB number saved and printed on the bill
+ewbportal>einvset|You register the GSP and create the API user here
+irp>einvset|E-invoice API registration
+gstportal>gstuser|Turn on Manage API access
+gstuser>gstr1|Username + OTP
+gstuser>gstr2b|Username + OTP
+sinv>gstr1|Sales (B2B, B2C, exports)
+sret>gstr1|Credit / debit notes
+gstr1>gstportal|GSTR-1 data uploaded
+gstportal>gstr2b|GSTR-2A / 2B JSON downloaded
+pinv>gstr2b|Purchase bills to match
+gstportal>gsttool|GSTIN status and registration details
+payment>tdsfile|TDS deducted on payments
+tdsfile>protean|Form26Q.txt checked with FVU
+protean>itportal|Validated file uploaded by you
+payment>icici|Payment sent from BUSY
+icici>bankrec|Bank statement fetched
+icici>receipt|Collections recorded
+sinv>paylink|Bill amount and customer
+paylink>razorpay|Payment link request
+razorpay>receipt|Payment received, auto-matched
+sinv>upiqr|Amount + your UPI ID
+upiqr>upiapps|Customer scans and pays
+sinv>notify|Bill after save
+receipt>notify|Receipt after save
+notify>smsapi|SMS / WhatsApp message
+notify>emailcfg|Email with PDF
+notify>bns|Notifications through BNS
+smsapi>wa|whatsapp://send link
+smsapi>smsgw|HTTP request to your SMS company
+smsapi>msgbucket|WhatsApp API (third party)
+emailcfg>smtp|Mail sent from your account
+busyin>license|Activation key
+license>busyin|Softlock registration, demo OTP
+bdns>cloudsync|BUSY Agent download
+bdns>tallyimp|Tally2BUSY download
+data>cloudsync|Database read by BUSY Agent
+cloudsync>busycloud|Changes uploaded at set intervals
+busycloud>mobile|Reports and data on the phone
+mobile>busycloud|Orders and invoices from the field
+data>busyonline|Hosted and run on BUSY’s cloud
+tally>tallyimp|Ledgers, items, vouchers
+tallyimp>data|Imported into the company
 `;
 
 const STAGES = [
- ['SET UP', ['s_setup','s_masters','s_users','s_custom']],
- ['PLAN & PRICE', ['s_price','s_order','s_barcode','s_adv','s_prod']],
- ['RECORD', ['s_sales','s_purchase','s_pos','s_pay','s_vouch','s_job','s_tds','s_payroll']],
- ['TRACK', ['s_inv','s_out','s_bank','s_cost','s_branch']],
- ['REPORT & FILE', ['s_reports','s_gst','s_mis']],
- ['SHARE & KEEP', ['s_print','s_comm','s_mobile','s_data','s_util']]
+ ['INSIDE: ENTRIES', ['s_txn']],
+ ['INSIDE: FEATURES', ['s_gstf','s_tdsf','s_payf','s_share']],
+ ['INSIDE: SETUP', ['s_setup']],
+ ['GO-BETWEENS', ['s_gsp']],
+ ['GOVERNMENT', ['s_gov']],
+ ['OTHER OUTSIDE', ['s_bank','s_msg','s_busy','s_other']]
 ];
 
 const FLOWS = [
- {name:'Buy from a supplier and pay', desc:'From ordering goods to matching the payment with your bank statement.', steps:['supplier','po','grn','pinv','payment','bankbook','brs']},
- {name:'Sell to a customer and collect', desc:'From quote to money in the bank.', steps:['customer','quote','so','challan','sinv','receipt','bankbook']},
- {name:'Invoice to GST return', desc:'How a tax rate on an item ends up in your annual return.', steps:['hsn','gstcalc','sinv','einv','gstr1','gstr3b','gstr9']},
- {name:'Claim input tax credit', desc:'Purchase bills are matched with what suppliers filed before ITC is claimed.', steps:['supplier','pinv','gstr2b','gstr3b','gstr9']},
- {name:'Keep stock from running out', desc:'Stock levels trigger the next purchase order.', steps:['item','pinv','stock','reorder','po','grn']},
- {name:'Chase an overdue payment', desc:'Unpaid bills become reminders on WhatsApp.', steps:['sinv','receivables','ageing','overdue','reminders','whatsapp']},
- {name:'Entries to balance sheet', desc:'Every bill lands in the final accounts.', steps:['sinv','partyledger','tb','pl','bs']},
- {name:'Counter sale', desc:'Barcode to closing the counter at day end.', steps:['item','bargen','scan','posbill','shiftclose']},
- {name:'Make to order', desc:'A sales order works out what raw material to buy.', steps:['so','mrp_plan','po','grn','stock']},
- {name:'Pay salaries', desc:'Attendance to salary credited from the bank.', steps:['employee','attendance','salary','payment','bankbook']}
+ {name:'Generate an e-invoice', desc:'BUSY never talks to the IRP itself: the GSP carries the invoice there and brings the IRN back.', steps:['sinv','einv','webtel','irp','webtel','einv']},
+ {name:'Generate an e-way bill', desc:'Same route through the GSP, ending at the e-way bill portal.', steps:['sinv','ewb','webtel','ewbportal','webtel','ewb']},
+ {name:'One-time GSP setup', desc:'Done once on the government portal before e-invoice and e-way bill work.', steps:['ewbportal','einvset','einv']},
+ {name:'File GSTR-1 from BUSY', desc:'API access on the GST portal plus an OTP lets BUSY upload directly.', steps:['gstportal','gstuser','gstr1','gstportal']},
+ {name:'Reconcile GSTR-2B', desc:'Download what suppliers filed and match it with purchase bills.', steps:['gstportal','gstuser','gstr2b']},
+ {name:'File a TDS return', desc:'The only manual route: BUSY makes the file, you validate and upload it.', steps:['payment','tdsfile','protean','itportal']},
+ {name:'Collect payment online', desc:'Razorpay payment link from the bill, matched back as a receipt.', steps:['sinv','paylink','razorpay','receipt']},
+ {name:'Get paid by UPI QR', desc:'No website involved: the QR on the bill opens the customer’s UPI app.', steps:['sinv','upiqr','upiapps']},
+ {name:'Send invoice on WhatsApp', desc:'BUSY opens WhatsApp Desktop with the message and invoice link.', steps:['sinv','notify','smsapi','wa']},
+ {name:'Email an invoice', desc:'Sent from your own mail account through SMTP.', steps:['sinv','notify','emailcfg','smtp']},
+ {name:'Use the mobile app', desc:'BUSY Agent keeps the cloud copy fresh for the phone app.', steps:['bdns','cloudsync','busycloud','mobile']},
+ {name:'Bank with ICICI', desc:'Paid add-on; ICICI is the only bank BUSY links to.', steps:['payment','icici','bankrec']},
+ {name:'Move from Tally', desc:'Tally data copied in with the free Tally2BUSY tool.', steps:['tally','tallyimp','data']},
+ {name:'Activate the licence', desc:'Activation key from BUSY, registered online.', steps:['busyin','license','busyin']}
 ];
+
+/* ---------- details card ---------- */
+function metaHTML(id) {
+  const m = META[id]; if (!m) return '';
+  const host = u => u.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  return `<div class="meta">
+    <span class="how">${esc(m.how)}</span>
+    ${m.url ? `<a class="url" href="${m.url}" target="_blank" rel="noopener">${esc(host(m.url))} ↗</a>` : ''}
+    <p>${esc(m.note)}</p>
+    ${m.src ? `<a class="src" href="${m.src}" target="_blank" rel="noopener">Source ↗</a>` : ''}
+  </div>`;
+}
 
 /* ---------- data ---------- */
 const NODE = {}, SEC = {}, ORDER = [];
@@ -651,7 +381,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 const dot = t => `<i class="pr" style="background:var(--p${t.pr})"></i>`;
 const degree = id => (IN[id]?.length || 0) + (OUT[id]?.length || 0);
 
-$('#stats').innerHTML = `<span><b>${TIERS.length}</b> tiers</span><span><b>${Object.keys(SEC).length}</b> sections</span><span><b>${ORDER.length}</b> features</span><span><b>${EDGES.length}</b> data links</span>`;
+$('#stats').innerHTML = `<span><b>${TIERS.length}</b> tiers</span><span><b>${Object.keys(SEC).length}</b> sections</span><span><b>${ORDER.length}</b> items</span><span><b>${EDGES.length}</b> data links</span>`;
 
 /* ---------- tree ---------- */
 const tree = $('#tree');
@@ -704,7 +434,7 @@ function markTree(ins, outs) {
 
 /* ---------- modes ---------- */
 let mode = 'focus';
-let sel = {kind:'f', id:'supplier'};
+let sel = {kind:'f', id:'einv'};
 document.querySelector('.tabs').addEventListener('click', e => {
   const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode);
 });
@@ -749,7 +479,7 @@ function renderFocus() {
     mid = `<div class="mid-card"><div class="crumb">${dot(n.tier)}${esc(n.tier.name)} › ${esc(s.name)}</div>
       <h2>${esc(n.name)}</h2>
       <div class="pills"><span class="pill in">gets data from ${ins.size}</span><span class="pill out">sends data to ${outs.size}</span></div>
-      ${ins.size + outs.size === 0 ? `<p class="empty">No direct data links. This is a setting or tool inside <b>${esc(s.name)}</b>.</p>` : ''}
+      ${metaHTML(n.id)}
       <h4>Also in ${esc(s.name)}</h4><div class="chips">${sibs}</div>
       <button class="link-btn" data-sec="${s.id}">Show all links for ${esc(s.name)}</button></div>`;
   } else {
